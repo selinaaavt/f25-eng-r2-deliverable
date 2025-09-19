@@ -1,17 +1,22 @@
 /* eslint-disable */
-// TODO: Implement this file
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { generateResponse } from "@/lib/services/species-chat";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { message } = body;
+    const body: unknown = await req.json();
 
-    if (!message || typeof message !== "string") {
+    // Narrow the type
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      !("message" in body) ||
+      typeof (body as any).message !== "string"
+    ) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
+    const message = (body as { message: string }).message;
     const response = await generateResponse(message);
     return NextResponse.json({ response });
   } catch (error) {
