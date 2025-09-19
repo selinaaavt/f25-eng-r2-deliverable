@@ -7,59 +7,48 @@ import { max } from "d3-array";
 import { axisBottom, axisLeft } from "d3-axis";
 import { csv } from "d3-fetch";
 
-// Define the data interface
-interface AnimalDatum {
-  name: string;
-  speed: number;
-  diet: string;
-}
-
 export default function AnimalSpeedGraph() {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const [animalData, setAnimalData] = useState<AnimalDatum[]>([]);
+  const graphRef = useRef(null);
+  const [animalData, setAnimalData] = useState([]);
 
   // Load CSV data
   useEffect(() => {
     csv("/sample_animals.csv", (d) => {
       return {
-        name: d["name"] as string,
-        speed: +d["speed"],
-        diet: d["diet"] as string,
+        name: d["name"],
+        speed: +(d["speed"] ?? 0), // safer conversion
+        diet: d["diet"],
       };
     }).then((data) => {
-      setAnimalData(data as AnimalDatum[]);
+      setAnimalData(data);
     });
   }, []);
 
   useEffect(() => {
-    if (graphRef.current) {
-      graphRef.current.innerHTML = "";
-    }
-    if (animalData.length === 0) return;
+    if (!graphRef.current || animalData.length === 0) return;
 
-    const containerWidth = graphRef.current?.clientWidth ?? 800;
-    const containerHeight = graphRef.current?.clientHeight ?? 600;
+    graphRef.current.innerHTML = "";
+
+    const containerWidth = graphRef.current.clientWidth || 800;
+    const containerHeight = graphRef.current.clientHeight || 600;
     const width = Math.max(containerWidth, 800);
     const height = Math.max(containerHeight, 500);
     const margin = { top: 70, right: 60, bottom: 200, left: 100 };
 
-    const svg = select(graphRef.current!)
+    const svg = select(graphRef.current)
       .append("svg")
       .attr("width", width)
       .attr("height", height);
 
-    // --- FILTER DATA: top 5 fastest animals per diet ---
-    const dietGroups: Record<string, AnimalDatum[]> = {
-      herbivore: [],
-      carnivore: [],
-      omnivore: [],
-    };
-    animalData.forEach(d => {
-      const diet = d.diet.trim().toLowerCase();
+    // --- FILTER DATA: top 10 fastest animals per diet ---
+    const dietGroups = { herbivore: [], carnivore: [], omnivore: [] };
+    animalData.forEach((d) => {
+      const diet = d.diet?.trim().toLowerCase();
       if (dietGroups[diet]) dietGroups[diet].push(d);
     });
+
     const filteredData = Object.values(dietGroups)
-      .flatMap(group => group.sort((a, b) => b.speed - a.speed).slice(0, 10));
+      .flatMap((group) => group.sort((a, b) => b.speed - a.speed).slice(0, 10));
 
     // Band scale for animals (x-axis)
     const x = scaleBand()
@@ -69,14 +58,14 @@ export default function AnimalSpeedGraph() {
 
     // Linear scale for speed (y-axis)
     const y = scaleLinear()
-      .domain([0, max(filteredData, (d) => d.speed)!])
+      .domain([0, max(filteredData, (d) => d.speed) || 0])
       .nice()
       .range([height - margin.bottom, margin.top]);
 
     // Ordinal scale for diet colors
-    const color = scaleOrdinal<string>()
+    const color = scaleOrdinal()
       .domain(["herbivore", "carnivore", "omnivore"])
-      .range(["#4bb84bff", "#db4c4cff", "#4493cbff"]); // green, red, blue
+      .range(["#4bb84bff", "#db4c4cff", "#4493cbff"]);
 
     // Bars
     svg
@@ -84,13 +73,13 @@ export default function AnimalSpeedGraph() {
       .selectAll("rect")
       .data(filteredData)
       .join("rect")
-      .attr("x", (d) => x(d.name)!)
+      .attr("x", (d) => x(d.name))
       .attr("y", (d) => y(d.speed))
       .attr("width", x.bandwidth())
       .attr("height", (d) => y(0) - y(d.speed))
-      .attr("fill", (d) => color(d.diet.trim().toLowerCase()));
+      .attr("fill", (d) => color(d.diet?.trim().toLowerCase()));
 
-    // X axis (rotated labels since names are long)
+    // X axis (rotated labels)
     svg
       .append("g")
       .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -125,11 +114,8 @@ export default function AnimalSpeedGraph() {
       .style("font-size", "14px")
       .text("Speed (km/h)");
 
-    // Compact legend (top-right inside chart)
-    const legend = svg
-      .append("g")
-      .attr("transform", `translate(${width - 100}, 10)`);
-
+    // Legend
+    const legend = svg.append("g").attr("transform", `translate(${width - 100}, 10)`);
     ["herbivore", "carnivore", "omnivore"].forEach((diet, i) => {
       const g = legend.append("g").attr("transform", `translate(0,${i * 20})`);
       g.append("rect").attr("width", 15).attr("height", 15).attr("fill", color(diet));
