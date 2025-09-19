@@ -8,6 +8,8 @@ export default function SpeciesChatbot() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const handleInput = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -16,11 +18,42 @@ export default function SpeciesChatbot() {
     }
   };
 
-const handleSubmit = async () => {
-  // TODO: Implement this function
-}
+  const handleSubmit = async () => {
+    const trimmed = message.trim();
+    if (!trimmed || loading) return; // ignore empty or multiple sends
 
-return (
+    // Append user message to chat log
+    setChatLog((prev) => [...prev, { role: "user", content: trimmed }]);
+    setMessage("");
+    setLoading(true);
+
+    try {
+      // Call your API route
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      const data = await res.json();
+
+      // Append bot response
+      setChatLog((prev) => [
+        ...prev,
+        { role: "bot", content: data.response ?? "Sorry, no response received." },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setChatLog((prev) => [
+        ...prev,
+        { role: "bot", content: "Error: Could not get a response." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
     <>
       <TypographyH2>Species Chatbot</TypographyH2>
       <div className="mt-4 flex gap-4">
@@ -37,7 +70,7 @@ return (
           </TypographyP>
         </div>
       </div>
-      {/* Chat UI, ChatBot to be implemented */}
+      {/* Chat UI */}
       <div className="mx-auto mt-6">
         {/* Chat history */}
         <div className="h-[400px] space-y-3 overflow-y-auto rounded-lg border border-border bg-muted p-4">
@@ -60,7 +93,7 @@ return (
           )}
         </div>
         {/* Textarea and submission */}
-        <div className="mt-4 flex flex-col items-end">
+        <div className="mt-4 flex flex-col items-end w-full">
           <textarea
             ref={textareaRef}
             value={message}
@@ -69,13 +102,15 @@ return (
             rows={1}
             placeholder="Ask about a species..."
             className="w-full resize-none overflow-hidden rounded border border-border bg-background p-2 text-sm text-foreground focus:outline-none"
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSubmit(); } }}
           />
           <button
             type="button"
             onClick={() => void handleSubmit()}
-            className="mt-2 rounded bg-primary px-4 py-2 text-background transition hover:opacity-90"
+            disabled={loading}
+            className="mt-2 rounded bg-primary px-4 py-2 text-background transition hover:opacity-90 disabled:opacity-50"
           >
-            Enter
+            {loading ? "Loading..." : "Enter"}
           </button>
         </div>
       </div>
