@@ -5,9 +5,9 @@ import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function SpeciesChatbot() {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef(null);
   const [message, setMessage] = useState("");
-  const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
+  const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleInput = () => {
@@ -37,10 +37,15 @@ export default function SpeciesChatbot() {
 
       const data = await res.json();
 
-      // Append bot response
+      // Safer access to response
+      const botMessage =
+        data && typeof data === "object" && "response" in data
+          ? data.response
+          : "Sorry, no response received.";
+
       setChatLog((prev) => [
         ...prev,
-        { role: "bot", content: data.response ?? "Sorry, no response received." },
+        { role: "bot", content: botMessage },
       ]);
     } catch (err) {
       console.error(err);
@@ -70,6 +75,7 @@ export default function SpeciesChatbot() {
           </TypographyP>
         </div>
       </div>
+
       {/* Chat UI */}
       <div className="mx-auto mt-6">
         {/* Chat history */}
@@ -92,6 +98,7 @@ export default function SpeciesChatbot() {
             ))
           )}
         </div>
+
         {/* Textarea and submission */}
         <div className="mt-4 flex flex-col items-end w-full">
           <textarea
@@ -102,7 +109,12 @@ export default function SpeciesChatbot() {
             rows={1}
             placeholder="Ask about a species..."
             className="w-full resize-none overflow-hidden rounded border border-border bg-background p-2 text-sm text-foreground focus:outline-none"
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSubmit(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void handleSubmit();
+              }
+            }}
           />
           <button
             type="button"
