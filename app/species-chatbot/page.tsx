@@ -5,9 +5,9 @@ import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function SpeciesChatbot() {
-  const textareaRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // <- Fixed type
   const [message, setMessage] = useState("");
-  const [chatLog, setChatLog] = useState([]);
+  const [chatLog, setChatLog] = useState<{ role: "user" | "bot"; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleInput = () => {
@@ -20,15 +20,13 @@ export default function SpeciesChatbot() {
 
   const handleSubmit = async () => {
     const trimmed = message.trim();
-    if (!trimmed || loading) return; // ignore empty or multiple sends
+    if (!trimmed || loading) return;
 
-    // Append user message to chat log
     setChatLog((prev) => [...prev, { role: "user", content: trimmed }]);
     setMessage("");
     setLoading(true);
 
     try {
-      // Call your API route
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,22 +35,15 @@ export default function SpeciesChatbot() {
 
       const data = await res.json();
 
-      // Safer access to response
       const botMessage =
         data && typeof data === "object" && "response" in data
-          ? data.response
+          ? (data as any).response
           : "Sorry, no response received.";
 
-      setChatLog((prev) => [
-        ...prev,
-        { role: "bot", content: botMessage },
-      ]);
+      setChatLog((prev) => [...prev, { role: "bot", content: botMessage }]);
     } catch (err) {
       console.error(err);
-      setChatLog((prev) => [
-        ...prev,
-        { role: "bot", content: "Error: Could not get a response." },
-      ]);
+      setChatLog((prev) => [...prev, { role: "bot", content: "Error: Could not get a response." }]);
     } finally {
       setLoading(false);
     }
@@ -76,9 +67,7 @@ export default function SpeciesChatbot() {
         </div>
       </div>
 
-      {/* Chat UI */}
       <div className="mx-auto mt-6">
-        {/* Chat history */}
         <div className="h-[400px] space-y-3 overflow-y-auto rounded-lg border border-border bg-muted p-4">
           {chatLog.length === 0 ? (
             <p className="text-sm text-muted-foreground">Start chatting about a species!</p>
@@ -99,7 +88,6 @@ export default function SpeciesChatbot() {
           )}
         </div>
 
-        {/* Textarea and submission */}
         <div className="mt-4 flex flex-col items-end w-full">
           <textarea
             ref={textareaRef}
