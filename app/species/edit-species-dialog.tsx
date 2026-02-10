@@ -25,6 +25,7 @@ import { z } from "zod";
 
 // Kingdom enum for dropdown
 const kingdoms = z.enum(["Animalia", "Plantae", "Fungi", "Protista", "Archaea", "Bacteria"]);
+type Kingdom = z.infer<typeof kingdoms>;
 
 // Zod schema for form validation
 const speciesSchema = z.object({
@@ -54,7 +55,7 @@ type EditSpeciesDialogProps = {
     id: number;
     scientific_name: string;
     common_name: string | null;
-    kingdom: string;
+    kingdom: Kingdom;
     total_population: number | null;
     image: string | null;
     description: string | null;
