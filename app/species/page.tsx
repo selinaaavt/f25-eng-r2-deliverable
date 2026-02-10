@@ -34,7 +34,7 @@ export default async function SpeciesList() {
       </div>
       <Separator className="my-4" />
       {/* Client-side search component */}
-      <SpeciesSearch species={species || []} userId={sessionId} />
+      <SpeciesSearch species={species ?? []} userId={sessionId} />
     </>
   );
 }

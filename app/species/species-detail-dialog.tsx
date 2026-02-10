@@ -10,13 +10,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Species = {
+interface Species {
   scientific_name: string;
   common_name: string | null;
   total_population: number | null;
   kingdom: string;
   description: string | null;
-};
+}
 
 export default function SpeciesDetailDialog({ species }: { species: Species }) {
   return (
