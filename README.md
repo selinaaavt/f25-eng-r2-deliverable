@@ -1,6 +1,6 @@
-# T4SG Fall 2025 Application Deliverable
+# T4SG Spring 2026 Application Deliverable
 
-- [T4SG Spring 2025 Application Deliverable](#t4sg-spring-2025-application-deliverable)
+- [T4SG Spring 2026 Application Deliverable](#t4sg-spring-2025-application-deliverable)
   - [Introduction](#introduction)
   - [Setup](#setup)
     - [Install `npm` and `node`](#install-npm-and-node)
