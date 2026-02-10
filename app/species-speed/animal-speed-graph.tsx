@@ -15,7 +15,7 @@ type AnimalData = {
 };
 
 export default function AnimalSpeedGraph() {
-  const graphRef = useRef(null);
+  const graphRef = useRef<HTMLDivElement>(null);
   const [animalData, setAnimalData] = useState<AnimalData[]>([]);
 
   // Load CSV data
