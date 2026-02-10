@@ -14,6 +14,8 @@ type AnimalData = {
   diet: string;
 };
 
+type DietType = "herbivore" | "carnivore" | "omnivore";
+
 export default function AnimalSpeedGraph() {
   const graphRef = useRef<HTMLDivElement>(null);
   const [animalData, setAnimalData] = useState<AnimalData[]>([]);
@@ -48,10 +50,17 @@ export default function AnimalSpeedGraph() {
       .attr("height", height);
 
     // --- FILTER DATA: top 10 fastest animals per diet ---
-    const dietGroups = { herbivore: [], carnivore: [], omnivore: [] };
+    const dietGroups: Record<DietType, AnimalData[]> = {
+      herbivore: [],
+      carnivore: [],
+      omnivore: [],
+    };
+    
     animalData.forEach((d) => {
       const diet = d.diet?.trim().toLowerCase();
-      if (dietGroups[diet]) dietGroups[diet].push(d);
+      if (diet === "herbivore" || diet === "carnivore" || diet === "omnivore") {
+        dietGroups[diet].push(d);
+      }
     });
 
     const filteredData = Object.values(dietGroups)
@@ -70,7 +79,7 @@ export default function AnimalSpeedGraph() {
       .range([height - margin.bottom, margin.top]);
 
     // Ordinal scale for diet colors
-    const color = scaleOrdinal()
+    const color = scaleOrdinal<string>()
       .domain(["herbivore", "carnivore", "omnivore"])
       .range(["#4bb84bff", "#db4c4cff", "#4493cbff"]);
 
@@ -80,11 +89,14 @@ export default function AnimalSpeedGraph() {
       .selectAll("rect")
       .data(filteredData)
       .join("rect")
-      .attr("x", (d) => x(d.name))
+      .attr("x", (d) => x(d.name) || 0)
       .attr("y", (d) => y(d.speed))
       .attr("width", x.bandwidth())
       .attr("height", (d) => y(0) - y(d.speed))
-      .attr("fill", (d) => color(d.diet?.trim().toLowerCase()));
+      .attr("fill", (d) => {
+        const diet = d.diet?.trim().toLowerCase();
+        return color(diet);
+      });
 
     // X axis (rotated labels)
     svg
@@ -123,7 +135,9 @@ export default function AnimalSpeedGraph() {
 
     // Legend
     const legend = svg.append("g").attr("transform", `translate(${width - 100}, 10)`);
-    ["herbivore", "carnivore", "omnivore"].forEach((diet, i) => {
+    const dietTypes: DietType[] = ["herbivore", "carnivore", "omnivore"];
+    
+    dietTypes.forEach((diet, i) => {
       const g = legend.append("g").attr("transform", `translate(0,${i * 20})`);
       g.append("rect").attr("width", 15).attr("height", 15).attr("fill", color(diet));
       g.append("text")
