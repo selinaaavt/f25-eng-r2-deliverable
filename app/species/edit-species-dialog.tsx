@@ -1,6 +1,5 @@
 "use client";
 
-import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -50,7 +49,7 @@ const speciesSchema = z.object({
 type FormData = z.infer<typeof speciesSchema>;
 
 // Props: species to edit and current user ID
-type EditSpeciesDialogProps = {
+interface EditSpeciesDialogProps {
   species: {
     id: number;
     scientific_name: string;
@@ -62,9 +61,9 @@ type EditSpeciesDialogProps = {
     author: string;
   };
   userId: string;
-};
+}
 
-export default function EditSpeciesDialog({ species, userId }: EditSpeciesDialogProps) {
+export default function EditSpeciesDialog({ species }: EditSpeciesDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -120,7 +119,7 @@ export default function EditSpeciesDialog({ species, userId }: EditSpeciesDialog
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Edit Species</DialogTitle>
-          <DialogDescription>Update the species details and click "Save Changes".</DialogDescription>
+          <DialogDescription>Update the species details and click &quot;Save Changes&quot;.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={(e: BaseSyntheticEvent) => void form.handleSubmit(onSubmit)(e)}>
