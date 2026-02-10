@@ -7,17 +7,24 @@ import { max } from "d3-array";
 import { axisBottom, axisLeft } from "d3-axis";
 import { csv } from "d3-fetch";
 
+// Define the type for animal data
+type AnimalData = {
+  name: string;
+  speed: number;
+  diet: string;
+};
+
 export default function AnimalSpeedGraph() {
   const graphRef = useRef(null);
-  const [animalData, setAnimalData] = useState([]);
+  const [animalData, setAnimalData] = useState<AnimalData[]>([]);
 
   // Load CSV data
   useEffect(() => {
     csv("/sample_animals.csv", (d) => {
       return {
-        name: d["name"],
-        speed: +(d["speed"] ?? 0), // safer conversion
-        diet: d["diet"],
+        name: d["name"] || "",
+        speed: +(d["speed"] ?? 0),
+        diet: d["diet"] || "",
       };
     }).then((data) => {
       setAnimalData(data);
