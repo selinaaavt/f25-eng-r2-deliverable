@@ -95,8 +95,8 @@ export default function SpeciesCard({ species, userId }: { species: Species; use
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Delete
+                    <AlertDialogAction onClick={() => void handleDelete()}>
+                      Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
