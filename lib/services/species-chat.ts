@@ -13,7 +13,7 @@ export async function generateResponse(message: string): Promise<string> {
     if (!message.trim()) return "Please ask a question about species or animals.";
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: "gemini-1.5-flash",
       systemInstruction: systemInstruction,
     });
 
