@@ -13,6 +13,7 @@ interface Species {
   image: string | null;
   kingdom: "Animalia" | "Plantae" | "Fungi" | "Protista" | "Archaea" | "Bacteria";
   total_population: number | null;
+  endangered: boolean | null;  // ADD THIS LINE
 }
 
 interface SpeciesSearchProps {
