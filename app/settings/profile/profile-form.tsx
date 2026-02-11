@@ -44,8 +44,8 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
 
   // Set default values for the form (on open) to the existing profile data which was passed in as a prop
   const defaultValues = {
-    username: profile.display_name,
-    bio: profile.biography,
+    username: profile.display_name ?? "",
+    bio: profile.biography ?? null,
   };
 
   type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -65,7 +65,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
     const { error } = await supabase
       .from("profiles")
       .update({ biography: data.bio, display_name: data.username })
-      .eq("id", profile.id);
+      .eq("id", profile.user_id);
 
     // Catch and report errors from Supabase and exit the onSubmit function with an early 'return' if an error occurred.
     if (error) {
@@ -128,7 +128,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         <FormItem>
           <FormLabel>Email</FormLabel>
           <FormControl>
-            <Input readOnly placeholder={profile.email} />
+            <Input readOnly value="" placeholder="Your email" />
           </FormControl>
           <FormDescription>This is your verified email address.</FormDescription>
           <FormMessage />
