@@ -12,11 +12,56 @@ can cause errors with matching props and state in child components if the list o
 */
 import type { Database } from "@/lib/schema";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createBrowserSupabaseClient } from "@/lib/client-utils";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 type Species = Database["public"]["Tables"]["species"]["Row"];
-import SpeciesDetailDialog from "./species-detail-dialog"
+import SpeciesDetailDialog from "./species-detail-dialog";
 import EditSpeciesDialog from "./edit-species-dialog";
 
 export default function SpeciesCard({ species, userId }: { species: Species; userId: string }) {
+  const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const supabase = createBrowserSupabaseClient();
+    
+    const { error } = await supabase
+      .from("species")
+      .delete()
+      .eq("id", species.id);
+
+    if (error) {
+      setIsDeleting(false);
+      return toast({
+        title: "Something went wrong.",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+
+    toast({
+      title: "Species deleted!",
+      description: `${species.scientific_name} has been deleted successfully.`,
+    });
+
+    router.refresh();
+  };
+
   return (
     <div className="m-4 w-72 min-w-72 flex-none rounded border-2 p-3 shadow">
       {species.image && (
@@ -30,9 +75,33 @@ export default function SpeciesCard({ species, userId }: { species: Species; use
       {/* Replace the button with the detailed view dialog. */}
       <div className="mt-3 w-full flex flex-col gap-2">
         <SpeciesDetailDialog species={species} />
-        {/* Show edit dialog only if current user is the author */}
+        {/* Show edit and delete buttons only if current user is the author */}
         {species.author === userId && (
-          <EditSpeciesDialog species={species} userId={userId} />
+          <>
+            <EditSpeciesDialog species={species} userId={userId} />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={isDeleting}>
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete <strong>{species.scientific_name}</strong>.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
         )}
       </div>
     </div>
