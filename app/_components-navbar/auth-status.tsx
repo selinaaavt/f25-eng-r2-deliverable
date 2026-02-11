@@ -34,5 +34,5 @@ export default async function AuthStatus() {
     return;
   }
 
-  return <UserNav profile={profileData} />;
+  return <UserNav profile={profileData} email={user.email ?? ""} />;
 }
