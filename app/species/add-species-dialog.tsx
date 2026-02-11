@@ -2,6 +2,7 @@
 
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -54,6 +55,7 @@ const speciesSchema = z.object({
     .nullable()
     // Transform empty string or only whitespace input to null before form submission, and trim whitespace otherwise
     .transform((val) => (!val || val.trim() === "" ? null : val.trim())),
+  endangered: z.boolean().default(false),
 });
 
 type FormData = z.infer<typeof speciesSchema>;
@@ -72,6 +74,7 @@ const defaultValues: Partial<FormData> = {
   total_population: null,
   image: null,
   description: null,
+  endangered: false,
 };
 
 export default function AddSpeciesDialog({ userId }: { userId: string }) {
@@ -99,6 +102,7 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
         scientific_name: input.scientific_name,
         total_population: input.total_population,
         image: input.image,
+        endangered: input.endangered,
       },
     ]);
 
@@ -267,6 +271,28 @@ export default function AddSpeciesDialog({ userId }: { userId: string }) {
                     </FormItem>
                   );
                 }}
+              />
+              <FormField
+                control={form.control}
+                name="endangered"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Endangered Species
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Check this box if the species is classified as endangered.
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
               />
               <div className="flex">
                 <Button type="submit" className="ml-1 mr-1 flex-auto">

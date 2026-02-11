@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -44,6 +45,7 @@ const speciesSchema = z.object({
     .string()
     .nullable()
     .transform((val) => (!val || val.trim() === "" ? null : val.trim())),
+  endangered: z.boolean().default(false),
 });
 
 type FormData = z.infer<typeof speciesSchema>;
@@ -59,6 +61,7 @@ interface EditSpeciesDialogProps {
     image: string | null;
     description: string | null;
     author: string;
+    endangered: boolean | null;
   };
   userId: string;
 }
@@ -76,6 +79,7 @@ export default function EditSpeciesDialog({ species }: EditSpeciesDialogProps) {
       total_population: species.total_population,
       image: species.image,
       description: species.description,
+      endangered: species.endangered ?? false,
     },
     mode: "onChange",
   });
@@ -91,6 +95,7 @@ export default function EditSpeciesDialog({ species }: EditSpeciesDialogProps) {
         total_population: input.total_population,
         image: input.image,
         description: input.description,
+        endangered: input.endangered,
       })
       .eq("id", species.id);
 
@@ -238,6 +243,28 @@ export default function EditSpeciesDialog({ species }: EditSpeciesDialogProps) {
                     </FormItem>
                   );
                 }}
+              />
+              <FormField
+                control={form.control}
+                name="endangered"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Endangered Species
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Check this box if the species is classified as endangered.
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
               />
               <div className="flex">
                 <Button type="submit" className="ml-1 mr-1 flex-auto">
